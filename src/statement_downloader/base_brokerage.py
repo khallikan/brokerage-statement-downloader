@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-from playwright.async_api import Page
+from playwright.async_api import Locator, Page  # type: ignore[import-unresolved]
 
 from .config import BrokerageConfig, STATEMENTS_DIR, DOWNLOAD_DELAY
 from .tracker import DownloadTracker
@@ -21,7 +21,7 @@ class AccountInfo:
 class StatementInfo:
     """A single available statement found on a statements page."""
     date: str               # YYYY-MM format
-    element: object         # Playwright ElementHandle or locator for the download link
+    element: Locator        # Playwright Locator for the download link
     account: AccountInfo    # which account this statement belongs to
 
 
@@ -61,9 +61,15 @@ class BaseBrokerage(ABC):
         # Check if already logged in (persistent cookies from previous session)
         if not await self._is_logged_in():
             await self._wait_for_login()
+            # Give the page time to settle after user completes login
+            await self.page.wait_for_timeout(3000)
+            try:
+                await self.page.wait_for_load_state("networkidle", timeout=10000)
+            except Exception:
+                pass
             if not await self._is_logged_in():
-                print(f"  Could not confirm login for {self.config.display_name}. Skipping.")
-                return 0
+                # Trust the user — they said they logged in
+                print(f"  Could not auto-confirm login for {self.config.display_name}, but proceeding anyway.")
 
         # Discover all accounts
         accounts = await self._get_accounts()
@@ -152,7 +158,11 @@ class BaseBrokerage(ABC):
             print(f"      Downloaded: {filename}")
             return saved_path
         else:
-            print(f"      FAILED: {filename} (empty or missing)")
+            size = target.stat().st_size if target.exists() else 0
+            reason = "empty file" if target.exists() else "file not created"
+            print(f"      FAILED: {filename} ({reason}, size={size})")
+            if target.exists():
+                target.unlink()
             return None
 
     # ------------------------------------------------------------------
@@ -160,13 +170,34 @@ class BaseBrokerage(ABC):
     # ------------------------------------------------------------------
 
     async def _wait_for_login(self) -> None:
-        """Prompt the user to log in manually in the browser window."""
+        """Wait for the user to log in by detecting URL change away from login page.
+
+        Subclasses can override for brokerage-specific login detection.
+        """
+        login_url = self.config.login_url.lower()
+
         print(f"\n{'=' * 60}")
         print(f"  Please log in to {self.config.display_name}")
         print(f"  Complete any 2FA prompts in the browser window.")
-        print(f"  Press ENTER here when you are fully logged in.")
+        print(f"  Script will auto-continue when login is detected...")
         print(f"{'=' * 60}\n")
-        await asyncio.get_event_loop().run_in_executor(None, input)
+
+        # Wait up to 5 minutes for the URL to change away from the login page
+        try:
+            await self.page.wait_for_url(
+                lambda url: url.lower().rstrip("/") != login_url.rstrip("/"),
+                timeout=300000,  # 5 minutes
+            )
+            print(f"  ✓ Login detected! Continuing...")
+            await self.page.wait_for_timeout(2000)
+        except Exception:
+            # Fallback: check if the URL changed at all
+            current_url = self.page.url.lower()
+            if current_url.rstrip("/") != login_url.rstrip("/"):
+                print(f"  ✓ Login detected! Continuing...")
+                await self.page.wait_for_timeout(2000)
+            else:
+                print(f"  WARNING: Could not auto-detect login. Proceeding anyway...")
 
     async def _is_logged_in(self) -> bool:
         """Check if the user appears to be logged in.

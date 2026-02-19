@@ -7,6 +7,9 @@ Robinhood is a React SPA. The navigation flow to reach statements:
   4. PDF links appear for each month
   5. Click "View More" repeatedly to load all available statements
   6. Download each PDF
+
+TODO: Consider using page.evaluate() to dump page HTML and analyze element
+structure (like the Webull module does) for more robust element detection.
 """
 
 import re
@@ -47,6 +50,35 @@ class RobinhoodBrokerage(BaseBrokerage):
     the "Reports and Statements" section.
     """
 
+    async def _wait_for_login(self) -> None:
+        """Wait for user to log in by watching for URL change.
+
+        After successful login, Robinhood redirects away from /login
+        (usually to https://robinhood.com/?classic=1 or the main dashboard).
+        """
+        print(f"\n{'=' * 60}")
+        print(f"  Please log in to {self.config.display_name}")
+        print(f"  Complete any 2FA prompts in the browser window.")
+        print(f"  Script will auto-continue when login is detected...")
+        print(f"{'=' * 60}\n")
+
+        try:
+            # Wait for URL to change away from /login (up to 5 minutes)
+            await self.page.wait_for_url(
+                lambda url: "/login" not in url.lower(),
+                timeout=300000,  # 5 minutes
+            )
+            print("  ✓ Login detected! Continuing...")
+            await self.page.wait_for_timeout(2000)
+        except Exception:
+            # Fallback: check if we're on robinhood.com but not /login
+            url = self.page.url.lower()
+            if "robinhood.com" in url and "/login" not in url:
+                print("  ✓ Login detected! Continuing...")
+                await self.page.wait_for_timeout(2000)
+            else:
+                print("  WARNING: Could not detect successful login")
+
     async def _is_logged_in(self) -> bool:
         try:
             # Wait for any redirect to complete
@@ -58,7 +90,7 @@ class RobinhoodBrokerage(BaseBrokerage):
             # If Robinhood redirected away from /login, we're likely logged in
             url = self.page.url.lower()
             if "/login" not in url and "robinhood.com" in url:
-                print("  Already logged in (redirected away from login page)")
+                print("  ✓ Already logged in (redirected away from login page)")
                 return True
 
             # Also check for logged-in UI elements even if still on login URL
@@ -70,7 +102,7 @@ class RobinhoodBrokerage(BaseBrokerage):
                 "text=/Portfolio/i"
             ).first.is_visible(timeout=5000)
             if logged_in:
-                print("  Already logged in (found account elements)")
+                print("  ✓ Already logged in (found account elements)")
                 return True
 
             return False
@@ -362,8 +394,8 @@ class RobinhoodBrokerage(BaseBrokerage):
             download = await download_info.value
             await download.save_as(str(target))
             return target
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"        Direct download failed: {e}")
 
         # Fallback: Robinhood may open PDF in a new tab
         try:
@@ -380,9 +412,10 @@ class RobinhoodBrokerage(BaseBrokerage):
                 target.write_bytes(content)
                 await new_page.close()
                 return target
+            print(f"        New tab opened but URL not a PDF: {url[:120]}")
             await new_page.close()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"        New tab strategy failed: {e}")
 
         # Last resort: try to get href and download directly
         try:
@@ -390,12 +423,16 @@ class RobinhoodBrokerage(BaseBrokerage):
             if href:
                 if not href.startswith("http"):
                     href = f"https://robinhood.com{href}"
+                print(f"        Trying direct fetch: href={href[:120]}")
                 response = await self.page.request.get(href)
                 content = await response.body()
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(content)
                 return target
+            else:
+                print(f"        No href attribute on element, cannot fallback")
         except Exception as e:
-            print(f"        All download methods failed: {e}")
+            print(f"        Direct fetch also failed: {e}")
 
+        print(f"        All download strategies exhausted for {target.name}")
         return None

@@ -128,6 +128,19 @@ class DownloadTracker:
 
         self._save()
 
+    def get_all_hashes(self, brokerage_slug: str) -> dict[str, str]:
+        """Return {sha256: filename} for all downloaded statements in a brokerage."""
+        hashes = {}
+        brokerage = self.data["brokerages"].get(brokerage_slug)
+        if not brokerage:
+            return hashes
+        for account in brokerage.get("accounts", {}).values():
+            for stmt in account.get("statements", []):
+                h = stmt.get("sha256", "")
+                if h:
+                    hashes[h] = stmt["filename"]
+        return hashes
+
     def get_status_summary(self) -> dict[str, dict[str, int]]:
         """Return {brokerage_slug: {account_label: count}} for all tracked statements."""
         summary = {}

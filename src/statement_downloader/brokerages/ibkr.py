@@ -167,15 +167,19 @@ class IBKRBrokerage(BaseBrokerage):
             download = await download_info.value
             await download.save_as(str(target))
             return target
-        except Exception:
+        except Exception as e:
+            print(f"        Download via click failed: {e}")
             try:
                 href = await stmt.element.get_attribute("href")
                 if href:
+                    print(f"        Trying direct fetch: href={href[:120]}")
                     response = await self.page.request.get(href)
                     content = await response.body()
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_bytes(content)
                     return target
-            except Exception as e:
-                print(f"        Fallback download failed: {e}")
+                else:
+                    print(f"        No href attribute on element, cannot fallback")
+            except Exception as e2:
+                print(f"        Fallback download also failed: {e2}")
             return None
