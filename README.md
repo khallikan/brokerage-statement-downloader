@@ -13,7 +13,7 @@ Automated tool to download monthly statements from all your brokerage accounts. 
 | `webull` | Webull | Needs testing |
 | `m1finance` | M1 Finance | Needs testing |
 | `vanguard` | Vanguard | Needs testing |
-| `ibkr` | Interactive Brokers | Needs testing |
+| `ibkr` | Interactive Brokers | Tested |
 
 ## Quick Start
 
@@ -193,7 +193,8 @@ safari-extension/
 1. ~~Create project scaffold~~ ✅
 2. ~~Implement core framework (config, tracker, browser, base class)~~ ✅
 3. ~~Implement Robinhood module~~ ✅ Tested and working
-4. Test and fix remaining 7 brokerages (Schwab, Fidelity, E*Trade, Vanguard, Webull, M1 Finance, IBKR)
+4. ~~Implement IBKR module~~ ✅ Tested and working (53 monthly statements)
+5. Test and fix remaining 6 brokerages (Schwab, Fidelity, E*Trade, Vanguard, Webull, M1 Finance)
 
 ### Phase 2: Chrome Extension
 
@@ -221,7 +222,7 @@ safari-extension/
 | Rate limiting | 2-second delay between downloads (configurable in `config.py`) |
 | Chrome extension can't save to ~/Documents | Save to ~/Downloads/Statements/ + optional symlink |
 | iOS file system restrictions | Save to app's Files-visible document directory |
-| IBKR complexity | May need to use their Flex Web Service API as alternative |
+| IBKR modal closes after each download | Re-opens modal and re-selects Monthly period for each statement |
 
 ## Verification
 
