@@ -9,7 +9,6 @@ The flow:
 2. Read year options from the year dropdown.
 3. For each year (newest first): select it, click "Load more" until gone,
    parse table rows, download each statement.
-4. Stop after 2 consecutive empty years.
 """
 
 import asyncio

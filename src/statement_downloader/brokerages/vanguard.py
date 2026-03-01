@@ -186,7 +186,6 @@ class VanguardBrokerage(BaseBrokerage):
         4. For each year: select year, set month to "All months", click "Update Table"
         5. Parse table rows, extract date/account/download link
         6. Download each new statement
-        7. Stop after 2 consecutive years with zero new downloads
         """
         print("    Personal Investor: processing statements...")
 

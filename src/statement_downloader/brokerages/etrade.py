@@ -10,7 +10,6 @@ Timeframe dropdown.  The flow:
 3. Read year options from the Timeframe dropdown.
 4. For each year (newest first): select it, click Apply, parse every table page.
 5. Only download rows whose Document column contains "Statement".
-6. Stop after 2 consecutive years that yield zero new downloads.
 """
 
 import asyncio

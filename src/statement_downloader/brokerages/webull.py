@@ -573,11 +573,7 @@ class WebullBrokerage(BaseBrokerage):
                     await asyncio.sleep(DOWNLOAD_DELAY)
 
             if year_downloads == 0:
-                has_clickable = await self._year_has_clickable_months()
-                if not has_clickable:
-                    print(f"      Year {year}: no clickable months")
-                else:
-                    print(f"      Year {year}: all available statements already downloaded")
+                print(f"      Year {year}: all available statements already downloaded")
             else:
                 print(f"      Year {year}: downloaded {year_downloads} statement(s)")
 
@@ -696,14 +692,6 @@ class WebullBrokerage(BaseBrokerage):
             return not is_disabled
         except Exception:
             return False
-
-    async def _year_has_clickable_months(self) -> bool:
-        """Check if any month in the current calendar view is clickable."""
-        for month_name in MONTH_NAMES:
-            cell = await self._find_month_cell(month_name)
-            if cell and await self._is_month_clickable(cell):
-                return True
-        return False
 
     async def _go_to_previous_year(self) -> bool:
         """Click the left arrow button to navigate to the previous year.
