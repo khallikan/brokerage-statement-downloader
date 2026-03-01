@@ -7,12 +7,12 @@ Automated tool to download monthly statements from all your brokerage accounts. 
 | Slug | Brokerage | Status |
 |------|-----------|--------|
 | `robinhood` | Robinhood | Tested |
-| `schwab` | Charles Schwab | Needs testing |
-| `etrade` | E*Trade | Needs testing |
-| `fidelity` | Fidelity | Needs testing |
-| `webull` | Webull | Needs testing |
-| `m1finance` | M1 Finance | Needs testing |
-| `vanguard` | Vanguard | Needs testing |
+| `schwab` | Charles Schwab | Tested |
+| `etrade` | E*Trade | Tested |
+| `fidelity` | Fidelity | Tested |
+| `webull` | Webull | Tested |
+| `m1finance` | M1 Finance | Tested |
+| `vanguard` | Vanguard | Tested |
 | `ibkr` | Interactive Brokers | Tested |
 
 ## Quick Start
@@ -193,8 +193,7 @@ safari-extension/
 1. ~~Create project scaffold~~ ✅
 2. ~~Implement core framework (config, tracker, browser, base class)~~ ✅
 3. ~~Implement Robinhood module~~ ✅ Tested and working
-4. ~~Implement IBKR module~~ ✅ Tested and working (53 monthly statements)
-5. Test and fix remaining 6 brokerages (Schwab, Fidelity, E*Trade, Vanguard, Webull, M1 Finance)
+4. ~~Implement and test all 8 brokerages~~ ✅
 
 ### Phase 2: Chrome Extension
 
