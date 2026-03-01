@@ -74,6 +74,6 @@ BROKERAGES: dict[str, BrokerageConfig] = {
         display_name="Interactive Brokers",
         folder_name="InteractiveBrokers",
         login_url="https://www.interactivebrokers.com/sso/Login",
-        statements_url="https://www.interactivebrokers.com/portal/",
+        statements_url="https://portal.interactivebrokers.com/AccountManagement/AmAuthentication?action=Statements",
     ),
 }
