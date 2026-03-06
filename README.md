@@ -4,16 +4,16 @@ Automated tool to download monthly statements from all your brokerage accounts. 
 
 ## Supported Brokerages
 
-| Slug | Brokerage | Status |
-|------|-----------|--------|
-| `robinhood` | Robinhood | Tested |
-| `schwab` | Charles Schwab | Tested |
-| `etrade` | E*Trade | Tested |
-| `fidelity` | Fidelity | Tested |
-| `webull` | Webull | Tested |
-| `m1finance` | M1 Finance | Tested |
-| `vanguard` | Vanguard | Tested |
-| `ibkr` | Interactive Brokers | Tested |
+| Slug | Brokerage | Playwright | Chrome Extension |
+|------|-----------|------------|------------------|
+| `robinhood` | Robinhood | Tested | Tested |
+| `schwab` | Charles Schwab | Tested | Tested |
+| `etrade` | E*Trade | Tested | Not yet |
+| `fidelity` | Fidelity | Tested | Tested |
+| `webull` | Webull | Tested | Not yet |
+| `m1finance` | M1 Finance | Tested | Not yet |
+| `vanguard` | Vanguard | Tested | Not yet |
+| `ibkr` | Interactive Brokers | Tested | Not yet |
 
 ## Quick Start
 
@@ -111,28 +111,41 @@ All three approaches (Playwright, Chrome Extension, Safari Extension) share a si
 ## Project Structure
 
 ```
-playwright-downloader/
-├── pyproject.toml
-├── src/statement_downloader/
-│   ├── __init__.py
-│   ├── __main__.py             # python -m entry point
-│   ├── cli.py                  # CLI (argparse)
-│   ├── config.py               # Brokerage registry, paths, constants
-│   ├── tracker.py              # Read/write download_log.json
-│   ├── browser.py              # Launch headed Chromium with persistent profile
-│   ├── base_brokerage.py       # Abstract base class for all brokerages
-│   └── brokerages/
-│       ├── __init__.py          # Registry mapping slugs → classes
-│       ├── robinhood.py
-│       ├── schwab.py
-│       ├── etrade.py
-│       ├── fidelity.py
-│       ├── webull.py
-│       ├── m1finance.py
-│       ├── vanguard.py
-│       └── ibkr.py
-├── tests/
-└── browser_data/               # Persistent Chromium profile (gitignored)
+brokerage-statement-downloader/
+├── README.md
+├── chrome-extension/              # Chrome/Brave extension (Manifest V3)
+│   ├── manifest.json
+│   ├── popup/                     # Extension popup UI
+│   ├── background/service-worker.js
+│   ├── content-scripts/
+│   │   ├── detector.js            # Detects brokerage + scrapes statements
+│   │   └── brokerages/            # Per-brokerage content scripts
+│   ├── shared/                    # Config, tracker, utilities
+│   ├── icons/
+│   └── rules/
+├── safari-extension/              # Safari extension for iOS (planned)
+└── playwright-downloader/         # Python/Playwright automation
+    ├── pyproject.toml
+    ├── src/statement_downloader/
+    │   ├── __init__.py
+    │   ├── __main__.py             # python -m entry point
+    │   ├── cli.py                  # CLI (argparse)
+    │   ├── config.py               # Brokerage registry, paths, constants
+    │   ├── tracker.py              # Read/write download_log.json
+    │   ├── browser.py              # Launch headed Chromium with persistent profile
+    │   ├── base_brokerage.py       # Abstract base class for all brokerages
+    │   └── brokerages/
+    │       ├── __init__.py          # Registry mapping slugs → classes
+    │       ├── robinhood.py
+    │       ├── schwab.py
+    │       ├── etrade.py
+    │       ├── fidelity.py
+    │       ├── webull.py
+    │       ├── m1finance.py
+    │       ├── vanguard.py
+    │       └── ibkr.py
+    ├── tests/
+    └── browser_data/               # Persistent Chromium profile (gitignored)
 ```
 
 ### Key Components
@@ -151,9 +164,9 @@ This project is part of a larger plan with three complementary approaches:
 
 The main workhorse. Runs on desktop (Mac/PC). Most powerful for bulk first-time downloads. Handles complex navigation, pagination ("View More" buttons), and account switching automatically.
 
-### Approach 2: Chrome Extension (Manifest V3) — Planned
+### Approach 2: Chrome Extension (Manifest V3) — In Progress
 
-A Chrome extension that runs in your existing browser. You log into a brokerage manually, click the extension, and it downloads statements. No bot detection issues since it uses your real browser session.
+A Chrome extension that runs in your existing browser. You log into a brokerage manually, click the extension, and it downloads statements. No bot detection issues since it uses your real browser session. Robinhood, Schwab, and Fidelity are implemented, working, and tested. The remaining brokerages (E*Trade, Webull, M1 Finance, Vanguard, IBKR) still need to be implemented and tested.
 
 **Structure:**
 ```
@@ -201,7 +214,14 @@ safari-extension/
 2. ~~Port brokerage DOM selectors from Playwright into content scripts~~ ✅
 3. ~~Implement download tracking via `chrome.storage.local`~~ ✅
 4. ~~Add import/export for syncing with `download_log.json`~~ ✅
-5. Test each brokerage
+5. ~~Test Robinhood~~ ✅
+6. ~~Test Schwab~~ ✅
+7. ~~Test Fidelity~~ ✅ (uses `chrome.debugger` CDP for trusted clicks on Angular menu items)
+8. Test E*Trade
+9. Test Webull
+10. Test M1 Finance
+11. Test Vanguard
+12. Test IBKR
 
 #### How the Chrome Extension Works
 
