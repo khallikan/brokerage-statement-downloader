@@ -2,7 +2,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 
-STATEMENTS_DIR = Path.home() / "Documents" / "Statements"
+STATEMENTS_DIR = Path.home() / "Downloads" / "Statements"
 DOWNLOAD_LOG_PATH = STATEMENTS_DIR / "download_log.json"
 BROWSER_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "browser_data"
 

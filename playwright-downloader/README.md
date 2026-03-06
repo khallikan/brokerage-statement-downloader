@@ -51,10 +51,10 @@ python -m statement_downloader --list
 
 ## File Organization
 
-Statements are saved to `~/Documents/Statements/` organized by brokerage:
+Statements are saved to `~/Downloads/Statements/` organized by brokerage:
 
 ```
-~/Documents/Statements/
+~/Downloads/Statements/
 ├── download_log.json           ← tracks all downloaded statements
 ├── Robinhood/
 │   ├── 2024-01_Robinhood_individual0000.pdf
@@ -167,7 +167,7 @@ chrome-extension/
 └── shared/                     # Config, tracker, utilities
 ```
 
-**Known limitation:** `chrome.downloads` saves relative to the system Downloads folder. Files will land in `~/Downloads/Statements/` instead of `~/Documents/Statements/`. Workaround: create a symlink.
+**Note:** Both Playwright and Chrome Extension save to `~/Downloads/Statements/` for consistency.
 
 ### Approach 3: Safari Web Extension (iOS) — Planned
 
@@ -188,19 +188,63 @@ safari-extension/
 
 ## Build Order
 
-### Phase 1: Playwright (current) ← **You are here**
+### Phase 1: Playwright ✅ (Complete)
 
 1. ~~Create project scaffold~~ ✅
 2. ~~Implement core framework (config, tracker, browser, base class)~~ ✅
 3. ~~Implement Robinhood module~~ ✅ Tested and working
 4. ~~Implement and test all 8 brokerages~~ ✅
 
-### Phase 2: Chrome Extension
+### Phase 2: Chrome Extension — **You are here**
 
-1. Create manifest.json, popup scaffold, service worker
-2. Port brokerage DOM selectors from Playwright into content scripts
-3. Implement download tracking via `chrome.storage.local`
-4. Add export/import for syncing with `download_log.json`
+1. ~~Create manifest.json, popup scaffold, service worker~~ ✅
+2. ~~Port brokerage DOM selectors from Playwright into content scripts~~ ✅
+3. ~~Implement download tracking via `chrome.storage.local`~~ ✅
+4. ~~Add import/export for syncing with `download_log.json`~~ ✅
+5. Test each brokerage
+
+#### How the Chrome Extension Works
+
+The extension requires you to **import your `download_log.json`** before downloading. This ensures statements you've already downloaded (via Playwright or a previous session) are skipped.
+
+**First-time flow:**
+
+1. Navigate to any supported brokerage and click the extension icon
+2. The popup prompts you to **"Import download_log.json"**
+3. Click the import button and select your `~/Downloads/Statements/download_log.json`
+   - If you don't have one yet (first time ever), cancel the file picker and the extension creates a fresh `download_log.json` at `~/Downloads/Statements/` for you
+4. After import, the popup shows how many statements are tracked and enables the **"Download Statements"** button
+5. Click **"Download Statements"** — the extension scrapes the page and downloads new PDFs
+6. When finished, the extension auto-exports the updated `download_log.json` back to `~/Downloads/Statements/`
+
+**Subsequent runs:** The extension remembers your log in `chrome.storage`. Click the extension, see the green status bar, and click "Download Statements" immediately. Use "Import Log" anytime to re-sync with the file on disk (e.g., after running Playwright).
+
+#### Setting Up the Chrome Extension
+
+1. **Load the extension in Chrome/Brave**:
+   - Open Chrome/Brave → go to `chrome://extensions/`
+   - Enable **"Developer mode"** (top right toggle)
+   - Click **"Load unpacked"**
+   - Select the `chrome-extension/` folder (not a subfolder!)
+   - The extension icon should appear in your toolbar
+
+2. **Browser settings (important!)**:
+   - Go to **Settings → Downloads** (or `chrome://settings/downloads`)
+   - Turn **OFF** "Ask where to save each file before downloading"
+   - This lets the extension automatically save to `~/Downloads/Statements/`
+
+3. **Use the extension**:
+   - Navigate to a brokerage (e.g., `robinhood.com/account/documents`)
+   - Log in manually if needed
+   - Click the extension icon in your browser toolbar
+   - Import your `download_log.json` (first time only)
+   - Click **"Download Statements"**
+   - Files save to `~/Downloads/Statements/<BrokerageName>/`
+
+4. **Sync with Playwright**:
+   - The extension auto-exports `download_log.json` after every download session
+   - Both Playwright and the extension read/write the same `~/Downloads/Statements/download_log.json`
+   - After running Playwright, click "Import Log" in the extension to pick up new entries
 
 ### Phase 3: Safari Extension (iOS)
 
@@ -219,7 +263,7 @@ safari-extension/
 | Statement pagination/scrolling | Handle per-brokerage (scroll + "View More" clicks) |
 | Download URL expiration | Download immediately after extracting URL, don't batch |
 | Rate limiting | 2-second delay between downloads (configurable in `config.py`) |
-| Chrome extension can't save to ~/Documents | Save to ~/Downloads/Statements/ + optional symlink |
+| File location | Both Playwright and Chrome Extension use ~/Downloads/Statements/ |
 | iOS file system restrictions | Save to app's Files-visible document directory |
 | IBKR modal closes after each download | Re-opens modal and re-selects Monthly period for each statement |
 
@@ -227,4 +271,4 @@ safari-extension/
 
 - **Idempotency**: Run twice in a row — second run should download 0 new statements
 - **Multi-account**: Verify each account's statements are saved with the correct label in the filename
-- **Download log**: Check `~/Documents/Statements/download_log.json` for correct entries after each run
+- **Download log**: Check `~/Downloads/Statements/download_log.json` for correct entries after each run

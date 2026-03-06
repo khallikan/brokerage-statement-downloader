@@ -1,7 +1,16 @@
-browser_data/
+# Python
 __pycache__/
 *.pyc
 *.egg-info/
 dist/
 build/
 .venv/
+
+# Playwright
+browser_data/
+
+# macOS
+.DS_Store
+
+# Chrome extension build artifacts
+chrome-extension/_metadata/

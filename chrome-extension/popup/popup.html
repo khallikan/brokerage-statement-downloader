@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statement Downloader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Statement Downloader</h1>
+
+    <div id="brokerage-info" class="brokerage-info hidden">
+      <p>Detected: <strong id="brokerage-name"></strong></p>
+
+      <!-- Download section: shown when log is loaded -->
+      <div id="download-section" class="hidden">
+        <input type="file" id="import-file" accept=".json" style="display:none">
+        <button id="import-btn" class="secondary import-centered">Upload download_log.json</button>
+        <p class="log-path-hint">download_log.json file should be in your Downloads/Statements/ folder. If you don't have one, click Create download_log.json button below.</p>
+        <button id="create-log-btn" class="secondary import-centered">Create download_log.json</button>
+        <div id="log-status" class="log-status hidden">
+          <p id="log-status-text"></p>
+        </div>
+        <button id="download-btn" disabled>Run Downloader Script</button>
+      </div>
+    </div>
+
+    <div id="no-brokerage" class="no-brokerage">
+      <p>Navigate to a supported brokerage and log in before running the Downloader Script.</p>
+      <p class="supported">Supported: Robinhood, Schwab, E*Trade, Fidelity, Webull, M1 Finance, Vanguard, Interactive Brokers</p>
+    </div>
+
+    <!-- Progress Section -->
+    <div id="progress" class="progress hidden">
+      <div class="progress-header">
+        <span id="progress-status">Ready</span>
+      </div>
+      <div id="current-step" class="current-step">
+        <span class="step-label">Current:</span>
+        <span id="step-text">-</span>
+      </div>
+      <div id="statements-count" class="statements-count">
+        <span>Statements found: </span>
+        <span id="count-number">0</span>
+      </div>
+      <div id="download-progress" class="download-progress hidden">
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <span id="download-status"></span>
+      </div>
+      <ul id="progress-log"></ul>
+    </div>
+
+    <div id="results" class="results hidden">
+      <h3>Download Results</h3>
+      <ul id="download-list"></ul>
+    </div>
+
+    <div class="actions">
+    </div>
+
+    <p class="pin-instruction">Pin the extension to keep popup open while running</p>
+    <p class="pin-instruction">Make sure "Ask where to save files" is OFF in browser settings</p>
+    <p class="pin-instruction warning">Please do not click or move mouse until Downloader script has finished</p>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

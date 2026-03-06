@@ -277,6 +277,31 @@ class IBKRBrokerage(BaseBrokerage):
         except Exception as e:
             print(f"    IBKR: navbar navigation failed: {e}")
 
+        # If still not on statements page, try account menu fallback
+        if not await self._is_on_statements_page():
+            try:
+                print("    IBKR: trying account menu fallback...")
+                # Click on account menu (usually top right avatar/menu)
+                account_menu = self.page.locator(
+                    "[aria-label*='account'], [aria-label*='Account'], [data-testid*='account'], "
+                    + ".user-menu, .account-menu, button:has-text('Account'), "
+                    + "a:has-text('Account'), [class*='account'][class*='menu']"
+                ).first
+                if await account_menu.is_visible(timeout=5000):
+                    await account_menu.click()
+                    await self.page.wait_for_timeout(2000)
+
+                # Click "Reports & Statements" or similar
+                reports_link = self.page.locator(
+                    "a, button, [role='menuitem'], li"
+                ).filter(has_text=re.compile(r"Reports?\s*&\s*Statements?", re.IGNORECASE)).first
+                if await reports_link.is_visible(timeout=5000):
+                    await reports_link.click()
+                    await self.page.wait_for_timeout(3000)
+                    print("    IBKR: navigated via account menu → Reports & Statements")
+            except Exception as e:
+                print(f"    IBKR: account menu fallback failed: {e}")
+
     async def _dismiss_notification_modals(self) -> None:
         """Dismiss any IBKR notification popups (e.g. 'Bid, Ask, and Last Size Display Update')."""
         for _ in range(3):

@@ -1,0 +1,74 @@
+{
+  "manifest_version": 3,
+  "name": "Brokerage Statement Downloader",
+  "version": "1.0.0",
+  "description": "Download brokerage statements from your browser",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "downloads",
+    "tabs",
+    "declarativeNetRequest",
+    "debugger"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "remove_csp",
+        "enabled": true,
+        "path": "rules/remove_csp.json"
+      }
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["popup/progress.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "host_permissions": [
+    "*://*.robinhood.com/*",
+    "*://*.schwab.com/*",
+    "*://*.etrade.com/*",
+    "*://*.fidelity.com/*",
+    "*://*.webull.com/*",
+    "*://*.m1.com/*",
+    "*://*.vanguard.com/*",
+    "*://*.interactivebrokers.com/*",
+    "*://*.s3.amazonaws.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.robinhood.com/*",
+        "*://*.schwab.com/*",
+        "*://*.etrade.com/*",
+        "*://*.fidelity.com/*",
+        "*://*.webull.com/*",
+        "*://*.m1.com/*",
+        "*://*.vanguard.com/*",
+        "*://*.interactivebrokers.com/*"
+      ],
+      "js": ["content-scripts/detector.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
